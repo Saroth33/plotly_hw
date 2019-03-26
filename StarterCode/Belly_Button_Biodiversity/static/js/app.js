@@ -1,3 +1,5 @@
+
+
 function buildMetadata(sample) {
 
   // @TODO: Complete the following function that builds the metadata panel
@@ -13,17 +15,63 @@ function buildMetadata(sample) {
 
     // BONUS: Build the Gauge Chart
     // buildGauge(data.WFREQ);
+    // from data.js
+  d3.json(`/metadata/${sample}`).then((data) => {
+
+    var selectdata = d3.select("#sample-metadata");
+
+    selectdata.html("");
+    
+    Object.entries(data).forEach(([key, value]) => {
+      selectdata.append("h6").text(`${key}, ${value}`)
+      console.log(`${key}`);
+    });
+  });
 }
 
 function buildCharts(sample) {
 
-  // @TODO: Use `d3.json` to fetch the sample data for the plots
-
+// @TODO: Use `d3.json` to fetch the sample data for the plots
     // @TODO: Build a Bubble Chart using the sample data
-
     // @TODO: Build a Pie Chart
     // HINT: You will need to use slice() to grab the top 10 sample_values,
     // otu_ids, and labels (10 each).
+        /* data route */
+        var url = `/samples/${sample}`;
+        d3.json(url).then(function(response) {
+      
+          console.log(response);
+      
+          var sample_values = response.sample_values;
+          var otu_ids = response.otu_ids;
+          var otu_labels = response.otu_labels;
+      
+  
+  var trace1 =  {
+    values: sample_values.slice(0,10),
+    labels: otu_ids.slice(0,10),
+    text: otu_labels.slice(0,10),
+    type: 'pie'
+  };
+  var data1 = [trace1]
+
+  Plotly.newPlot('pie', data1);
+
+  var trace2 = {
+    x: otu_ids,
+    y: sample_values,
+    mode: 'markers',
+    marker: {size: sample_values, color: otu_ids}
+    
+    
+  };
+
+  var data2 = [trace2];
+  var layout = {showlegend: false,
+    height: 500,};
+
+    Plotly.newPlot('bubble', data2, layout);
+  });
 }
 
 function init() {
@@ -39,13 +87,13 @@ function init() {
         .property("value", sample);
     });
 
-    // Use the first sample from the list to build the initial plots
+    //Use the first sample from the list to build the initial plots
     const firstSample = sampleNames[0];
     buildCharts(firstSample);
     buildMetadata(firstSample);
   });
-}
 
+}
 function optionChanged(newSample) {
   // Fetch new data each time a new sample is selected
   buildCharts(newSample);
